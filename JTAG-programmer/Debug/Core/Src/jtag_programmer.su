@@ -1,0 +1,6 @@
+../Core/Src/jtag_programmer.c:15:9:is_valid_hex_char	16	static
+../Core/Src/jtag_programmer.c:20:9:ascii_string_to_byte	24	static
+../Core/Src/jtag_programmer.c:45:10:ascii_string_to_address	32	static
+../Core/Src/jtag_programmer.c:52:10:ascii_string_to_word	24	static
+../Core/Src/jtag_programmer.c:59:9:verify_hexfile_and_return_program_linklist	304	static
+../Core/Src/jtag_programmer.c:150:6:free_linkedlist	24	static

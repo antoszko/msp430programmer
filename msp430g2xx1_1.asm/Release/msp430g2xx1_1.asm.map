@@ -1,0 +1,220 @@
+******************************************************************************
+                  MSP430 Linker Unix v21.6.1                   
+******************************************************************************
+>> Linked Sat Sep  9 21:59:47 2023
+
+OUTPUT FILE NAME:   <msp430g2xx1_1.asm.out>
+ENTRY POINT SYMBOL: "RESET"  address: 0000f800
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  SFR                   00000000   00000010  00000000  00000010  RWIX
+  PERIPHERALS_8BIT      00000010   000000f0  00000000  000000f0  RWIX
+  PERIPHERALS_16BIT     00000100   00000100  00000000  00000100  RWIX
+  RAM                   00000200   00000080  00000000  00000080  RWIX
+  INFOD                 00001000   00000040  00000000  00000040  RWIX
+  INFOC                 00001040   00000040  00000000  00000040  RWIX
+  INFOB                 00001080   00000040  00000000  00000040  RWIX
+  INFOA                 000010c0   00000040  00000000  00000040  RWIX
+  FLASH                 0000f800   000007e0  00000024  000007bc  RWIX
+  INT00                 0000ffe0   00000002  00000000  00000002  RWIX
+  INT01                 0000ffe2   00000002  00000000  00000002  RWIX
+  INT02                 0000ffe4   00000002  00000002  00000000  RWIX
+  INT03                 0000ffe6   00000002  00000002  00000000  RWIX
+  INT04                 0000ffe8   00000002  00000000  00000002  RWIX
+  INT05                 0000ffea   00000002  00000000  00000002  RWIX
+  INT06                 0000ffec   00000002  00000000  00000002  RWIX
+  INT07                 0000ffee   00000002  00000000  00000002  RWIX
+  INT08                 0000fff0   00000002  00000002  00000000  RWIX
+  INT09                 0000fff2   00000002  00000002  00000000  RWIX
+  INT10                 0000fff4   00000002  00000002  00000000  RWIX
+  INT11                 0000fff6   00000002  00000002  00000000  RWIX
+  INT12                 0000fff8   00000002  00000000  00000002  RWIX
+  INT13                 0000fffa   00000002  00000000  00000002  RWIX
+  INT14                 0000fffc   00000002  00000002  00000000  RWIX
+  RESET                 0000fffe   00000002  00000002  00000000  RWIX
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.text      0    0000f800    00000024     
+                  0000f800    0000001c     msp430g2xx1_1.obj (.text)
+                  0000f81c    00000008     rts430_eabi.lib : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
+
+.cinit     0    0000f800    00000000     UNINITIALIZED
+
+.binit     0    0000f800    00000000     
+
+.init_array 
+*          0    0000f800    00000000     UNINITIALIZED
+
+PORT1      0    0000ffe4    00000002     
+                  0000ffe4    00000002     rts430_eabi.lib : int02.asm.obj (.int02)
+
+PORT2      0    0000ffe6    00000002     
+                  0000ffe6    00000002     rts430_eabi.lib : int03.asm.obj (.int03)
+
+TIMERA1    0    0000fff0    00000002     
+                  0000fff0    00000002     rts430_eabi.lib : int08.asm.obj (.int08)
+
+TIMERA0    0    0000fff2    00000002     
+                  0000fff2    00000002     rts430_eabi.lib : int09.asm.obj (.int09)
+
+WDT        0    0000fff4    00000002     
+                  0000fff4    00000002     rts430_eabi.lib : int10.asm.obj (.int10)
+
+COMPARATORA 
+*          0    0000fff6    00000002     
+                  0000fff6    00000002     rts430_eabi.lib : int11.asm.obj (.int11)
+
+NMI        0    0000fffc    00000002     
+                  0000fffc    00000002     rts430_eabi.lib : int14.asm.obj (.int14)
+
+.reset     0    0000fffe    00000002     
+                  0000fffe    00000002     msp430g2xx1_1.obj (.reset)
+
+MODULE SUMMARY
+
+       Module              code   ro data   rw data
+       ------              ----   -------   -------
+    ./
+       msp430g2xx1_1.obj   28     2         0      
+    +--+-------------------+------+---------+---------+
+       Total:              28     2         0      
+                                                   
+    /hdd/CCSTUDIO/ccs1240/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/lib/rts430_eabi.lib
+       isr_trap.asm.obj    8      0         0      
+       int02.asm.obj       0      2         0      
+       int03.asm.obj       0      2         0      
+       int08.asm.obj       0      2         0      
+       int09.asm.obj       0      2         0      
+       int10.asm.obj       0      2         0      
+       int11.asm.obj       0      2         0      
+       int14.asm.obj       0      2         0      
+    +--+-------------------+------+---------+---------+
+       Total:              8      14        0      
+                                                   
+    +--+-------------------+------+---------+---------+
+       Grand Total:        36     16        0      
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address   name                
+-------   ----                
+00000057  BCSCTL1             
+00000058  BCSCTL2             
+00000053  BCSCTL3             
+00000059  CACTL1              
+0000005a  CACTL2              
+000010ff  CALBC1_1MHZ         
+000010fe  CALDCO_1MHZ         
+0000005b  CAPD                
+00000056  DCOCTL              
+00000128  FCTL1               
+0000012a  FCTL2               
+0000012c  FCTL3               
+00000000  IE1                 
+00000002  IFG1                
+00000022  P1DIR               
+00000025  P1IE                
+00000024  P1IES               
+00000023  P1IFG               
+00000020  P1IN                
+00000021  P1OUT               
+00000027  P1REN               
+00000026  P1SEL               
+0000002a  P2DIR               
+0000002d  P2IE                
+0000002c  P2IES               
+0000002b  P2IFG               
+00000028  P2IN                
+00000029  P2OUT               
+0000002f  P2REN               
+0000002e  P2SEL               
+0000f800  RESET               
+00000172  TACCR0              
+00000174  TACCR1              
+00000162  TACCTL0             
+00000164  TACCTL1             
+00000160  TACTL               
+0000012e  TAIV                
+00000170  TAR                 
+00000120  WDTCTL              
+0000f81c  __TI_ISR_TRAP       
+0000ffe4  __TI_int02          
+0000ffe6  __TI_int03          
+0000fff0  __TI_int08          
+0000fff2  __TI_int09          
+0000fff4  __TI_int10          
+0000fff6  __TI_int11          
+0000fffc  __TI_int14          
+ffffffff  __TI_pprof_out_hndl 
+ffffffff  __TI_prof_data_size 
+ffffffff  __TI_prof_data_start
+ffffffff  __c_args__          
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address   name                
+-------   ----                
+00000000  IE1                 
+00000002  IFG1                
+00000020  P1IN                
+00000021  P1OUT               
+00000022  P1DIR               
+00000023  P1IFG               
+00000024  P1IES               
+00000025  P1IE                
+00000026  P1SEL               
+00000027  P1REN               
+00000028  P2IN                
+00000029  P2OUT               
+0000002a  P2DIR               
+0000002b  P2IFG               
+0000002c  P2IES               
+0000002d  P2IE                
+0000002e  P2SEL               
+0000002f  P2REN               
+00000053  BCSCTL3             
+00000056  DCOCTL              
+00000057  BCSCTL1             
+00000058  BCSCTL2             
+00000059  CACTL1              
+0000005a  CACTL2              
+0000005b  CAPD                
+00000120  WDTCTL              
+00000128  FCTL1               
+0000012a  FCTL2               
+0000012c  FCTL3               
+0000012e  TAIV                
+00000160  TACTL               
+00000162  TACCTL0             
+00000164  TACCTL1             
+00000170  TAR                 
+00000172  TACCR0              
+00000174  TACCR1              
+000010fe  CALDCO_1MHZ         
+000010ff  CALBC1_1MHZ         
+0000f800  RESET               
+0000f81c  __TI_ISR_TRAP       
+0000ffe4  __TI_int02          
+0000ffe6  __TI_int03          
+0000fff0  __TI_int08          
+0000fff2  __TI_int09          
+0000fff4  __TI_int10          
+0000fff6  __TI_int11          
+0000fffc  __TI_int14          
+ffffffff  __TI_pprof_out_hndl 
+ffffffff  __TI_prof_data_size 
+ffffffff  __TI_prof_data_start
+ffffffff  __c_args__          
+
+[51 symbols]

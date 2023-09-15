@@ -1,0 +1,11 @@
+../Replicator430/Devices430.c:145:6:SetDevice	16	static
+../Replicator430/Devices430.c:158:6:DeviceHas_TestPin	4	static
+../Replicator430/Devices430.c:165:6:DeviceHas_CpuX	4	static
+../Replicator430/Devices430.c:172:6:DeviceHas_DataQuick	4	static
+../Replicator430/Devices430.c:179:6:DeviceHas_FastFlash	4	static
+../Replicator430/Devices430.c:186:6:DeviceHas_EnhVerify	4	static
+../Replicator430/Devices430.c:193:6:DeviceHas_JTAG	4	static
+../Replicator430/Devices430.c:200:6:DeviceHas_SpyBiWire	4	static
+../Replicator430/Devices430.c:207:6:Device_RamStart	4	static
+../Replicator430/Devices430.c:214:6:Device_RamEnd	4	static
+../Replicator430/Devices430.c:222:6:Device_MainStart	4	static

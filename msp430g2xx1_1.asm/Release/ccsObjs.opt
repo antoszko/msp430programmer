@@ -1,0 +1,3 @@
+"./msp430g2xx1_1.obj"
+"../lnk_msp430g2211.cmd"
+-llibc.a

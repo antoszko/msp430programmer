@@ -1,0 +1,10 @@
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_gpio.h:985:22:LL_GPIO_ResetOutputPin	16	static
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_bus.h:563:22:LL_AHB2_GRP1_EnableClock	24	static
+../Core/Src/main.c:61:1:__io_putchar	16	static
+../Core/Src/main.c:67:1:__io_getchar	16	static
+../Core/Src/main.c:102:5:main	152	static
+../Core/Src/main.c:333:6:SystemClock_Config	96	static
+../Core/Src/main.c:377:13:MX_USART2_UART_Init	8	static
+../Core/Src/main.c:412:13:MX_GPIO_Init	32	static
+../Core/Src/main.c:487:13:GPIO_DeInit	32	static
+../Core/Src/main.c:507:6:Error_Handler	4	static,ignoring_inline_asm
