@@ -60,7 +60,7 @@
 #define WordBufferSize  50
 //! \brief Maximum number of tries for the determination of the core
 //! identification info
-#define MAX_ENTRY_TRY  7
+#define MAX_ENTRY_TRY  10
 //! \brief Comment in the following define if target device is from the ixx family
 //#define ixx_family
 
@@ -73,6 +73,13 @@
 typedef unsigned short word;
 typedef unsigned char byte;
 #endif
+
+#include "stdio.h" // for printf
+#define ERROR(...) do{\
+	printf("ERROR: %s() %s:%u ", __FUNCTION__, __FILE_NAME__, __LINE__);\
+	printf(__VA_ARGS__);\
+} while(0)
+
 
 /****************************************************************************/
 /* FUNCTION PROTOTYPES                                                      */

@@ -218,7 +218,6 @@ void TCLKstrobes(word Amount)
 //		__NOP();
 //		__NOP();
 //		__NOP();
-
 	}
 }
 

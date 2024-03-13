@@ -91,7 +91,8 @@ static void GPIO_DeInit(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-
+// TODO -- TESTING
+word StartJtag(void);
 
 /* USER CODE END 0 */
 
@@ -101,30 +102,52 @@ static void GPIO_DeInit(void);
   */
 int main(void)
 {
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_USART2_UART_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART2_UART_Init();
+  /* USER CODE BEGIN 2 */
+
+  // -------------- TESTING --------------
+//  ClrRST();
+//  ClrTCK();
+//  ClrTDI();
+//  ClrTMS();
+//  ClrTST();
+//  volatile word x = StartJtag();
+//  ClrRST();
+//  ClrTCK();
+//  ClrTDI();
+//  ClrTMS();
+//  ClrTST();
+//  printf("got jtag id is 0x%04x\n", x);
+//  printf("Exit\n");
+//
+//  while(1)
+//  {}
+
+  // -------------- END TESTING -------------
+
+
 	printf("starting...\r\n");
 	HAL_Delay(1000);
 
@@ -213,10 +236,17 @@ int main(void)
 		{
 			//main
 			uint8_t seg_index = (0xffff - iter->address) / 0x0200;
+			uint8_t seg_index_of_last_byte = (0xffff - iter->address - 2*iter->length) / 0x0200;	// the segment that the last byte lies in. (*2 because length is number of words!)
 			if (main_segments[seg_index] == 0)
 			{
 				printf("-vPlan to flash main segment %u (0x%04x)\n", seg_index, iter->address);
 				main_segments[seg_index] = 1;
+			}
+			if (main_segments[seg_index_of_last_byte] == 0)
+			{
+				printf("-vCode overlaps into next segment!\n");
+				printf("-vPlan to flash main segment %u (0x%04x)\n", seg_index_of_last_byte, iter->address);
+				main_segments[seg_index_of_last_byte] = 1;
 			}
 		}
 		else if (iter->address >= 0x1000 && iter->address <= 0x10ff)
@@ -229,6 +259,11 @@ int main(void)
 				printf("-vNeed to flash info segment %c (0x%04x)\n", seg_index + 'A', iter->address);
 			}
 		}
+//		else
+//		{
+//			should never reach here because the adress range is checked in verifyhexFile.
+//			TODO verify the range someplace else.
+//		}
 	}
 
 	uint32_t now = HAL_GetTick();
@@ -311,19 +346,19 @@ error:
 	GPIO_DeInit();
 
 	printf("Exit\n");
-	/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 	while (1) {
 
 		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 		HAL_Delay(500);
-		/* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
@@ -359,7 +394,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
@@ -422,20 +457,15 @@ static void MX_GPIO_Init(void)
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOH);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOA, TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin);
+  LL_GPIO_ResetOutputPin(GPIOA, TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin
+                          |TEST_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOB, TARGET_RESET_Pin|LD3_Pin);
+  LL_GPIO_ResetOutputPin(LD3_GPIO_Port, LD3_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_1|LL_GPIO_PIN_8|LL_GPIO_PIN_9|LL_GPIO_PIN_10
-                          |LL_GPIO_PIN_11|LL_GPIO_PIN_12;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin;
+  GPIO_InitStruct.Pin = TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin
+                          |TEST_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
@@ -449,19 +479,18 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(TDO_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_0|LL_GPIO_PIN_4|LL_GPIO_PIN_5|LL_GPIO_PIN_6
-                          |LL_GPIO_PIN_7;
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_0|LL_GPIO_PIN_1|LL_GPIO_PIN_4|LL_GPIO_PIN_5
+                          |LL_GPIO_PIN_6|LL_GPIO_PIN_7;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = TARGET_RESET_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_8|LL_GPIO_PIN_9|LL_GPIO_PIN_10|LL_GPIO_PIN_11
+                          |LL_GPIO_PIN_12;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(TARGET_RESET_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = LD3_Pin;

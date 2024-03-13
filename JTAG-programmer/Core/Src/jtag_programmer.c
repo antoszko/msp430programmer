@@ -42,14 +42,14 @@ uint8_t ascii_string_to_byte(const uint8_t* const string)
 	return answer;
 }
 
-uint16_t ascii_string_to_address(uint8_t* const string)
+uint16_t ascii_string_to_address(const uint8_t* const string)
 {
 	uint16_t answer = (ascii_string_to_byte(string) << 8) |
 					ascii_string_to_byte(string+2);
 	return answer;
 }
 
-uint16_t ascii_string_to_word(uint8_t* const string)
+uint16_t ascii_string_to_word(const uint8_t* const string)
 {
 	return ascii_string_to_byte(string) |
 			(ascii_string_to_byte(string+2) << 8);

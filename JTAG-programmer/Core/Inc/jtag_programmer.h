@@ -16,6 +16,8 @@ typedef struct node node_t;	// allows referencing self inside definition
 typedef struct node
 {
 	uint16_t address;
+
+	// in words (16 bits)
 	uint8_t length;
 	uint16_t* data;
 	node_t* next;
@@ -43,12 +45,12 @@ uint8_t ascii_string_to_byte(const uint8_t* const string);
  * String is in big endian. First byte is most significant then second byte is least significant.
  * Assumes no error can occur. String must contain ascii 'a'-'f', 'A'-'F', or '0'-'9'.
  */
-uint16_t ascii_string_to_address(uint8_t* const string);
+uint16_t ascii_string_to_address(const uint8_t* const string);
 
 /**
  * @brief same as ascii_string_to_address but its little endian
  */
-uint16_t ascii_string_to_word(uint8_t* const string);
+uint16_t ascii_string_to_word(const uint8_t* const string);
 
 /**
  * @brief Verifies the hexfile. Outputs a program as a linked list of node_t into output parameter program

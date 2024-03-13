@@ -171,12 +171,21 @@ void ResetTAP(void)
     // JTAG FSM is now in Run-Test/IDLE
 
     // Perform fuse check
-    ClrTMS();
-    usDelay(5); // at least 5us low required
-    SetTMS();
-    ClrTMS();
-    usDelay(5); // at least 5us low required
-    SetTMS();
+//    ClrTMS(); __NOP();__NOP();__NOP();__NOP();
+//    usDelay(5); // at least 5us low required
+//    SetTMS();
+//    ClrTMS();__NOP();__NOP();__NOP();__NOP();
+//    usDelay(5); // at least 5us low required
+//    SetTMS();
+
+    // stolen from CheckJTAGFuse() or whatever
+    /*SetTMS();*/__NOP();__NOP();__NOP();__NOP();
+    ClrTMS();__NOP();__NOP();__NOP();__NOP();
+    usDelay(15);
+    SetTMS();__NOP();__NOP();__NOP();__NOP();
+    ClrTMS();__NOP();__NOP();__NOP();__NOP();
+    usDelay(15);
+    SetTMS();__NOP();__NOP();__NOP();__NOP();
 }
 
 //----------------------------------------------------------------------------
@@ -421,13 +430,23 @@ static void EntrySequences_RstHigh_JTAG()
 
 //----------------------------------------------------------------------------
 //! \brief Function to start the JTAG communication
-static word StartJtag(void)
+// TODO make static
+/*static*/ word StartJtag(void)
 {
     // drive JTAG/TEST signals
+    SetTDI();
+    SetTMS();
+    SetTCK();
+    SetTCLK();
+    SetRST();
+    ClrTST();
+
     MsDelay(10);             // delay 10ms
     
 
         EntrySequences_RstHigh_JTAG();
+        // I think this commented out code block was for the case where the device doesn't support SWB.
+        // see MSP430 Programming With the JTAG Interface: 2.3: Memory Programming Control Sequences
 //    else // JTAG_IF
 //    {
 //        SetRST();
@@ -467,6 +486,7 @@ word GetDevice(word* deviceID)
       
         StopJtag();               // release JTAG/TEST signals to savely reset the test logic
         JtagId = StartJtag();     // establish the physical connection to the JTAG interface
+		printf("Got JTAG ID: 0x%04x\n\r", JtagId);
         if(JtagId == JTAG_ID)     // break if a valid JTAG ID is being returned
         {
             break;
@@ -474,6 +494,7 @@ word GetDevice(word* deviceID)
     }
     if(i >= MAX_ENTRY_TRY)
     {
+    	ERROR("failed to get a valid jtag id %u times\n", MAX_ENTRY_TRY);
         return(STATUS_ERROR);
     }
                       
@@ -485,6 +506,7 @@ word GetDevice(word* deviceID)
     DR_Shift16(0x2401);                  // Set device into JTAG mode + read
     if (IR_Shift(IR_CNTRL_SIG_CAPTURE) != JTAG_ID)
     {
+    	ERROR("failed to read jtag id after setting device into JTAG mode + read.\n\r");
         return(STATUS_ERROR);
     }
 
@@ -505,12 +527,14 @@ word GetDevice(word* deviceID)
         {
             if (i == 1)
             {
+            	ERROR("timeout reached waiting for CPU to synchronize.\n\r");
                 return(STATUS_ERROR);      // Timeout reached, return false
             }
         }
     }
     if (!ExecutePOR())                     // Perform PUC, Includes
     {
+    	ERROR("failed to execute Power-On Reset.\n\r");
         return(STATUS_ERROR);              // target Watchdog disable.
     }
     return(STATUS_OK);
