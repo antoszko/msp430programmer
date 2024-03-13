@@ -1,4 +1,0 @@
-../Replicator430/LowLevelFunc430.c:84:6:Shift	24	static
-../Replicator430/LowLevelFunc430.c:133:6:usDelay	16	static,ignoring_inline_asm
-../Replicator430/LowLevelFunc430.c:166:6:TCLKstrobes	24	static,ignoring_inline_asm
-../Replicator430/LowLevelFunc430.c:232:6:ShowStatus	16	static
