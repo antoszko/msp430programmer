@@ -485,7 +485,7 @@ word GetDevice(word* deviceID)
       
         StopJtag();               // release JTAG/TEST signals to savely reset the test logic
         JtagId = StartJtag();     // establish the physical connection to the JTAG interface
-		printf("Got JTAG ID: 0x%04x\n\r", JtagId);
+		printf("Got JTAG ID: 0x%04x\n", JtagId);
         if(JtagId == JTAG_ID)     // break if a valid JTAG ID is being returned
         {
             break;
