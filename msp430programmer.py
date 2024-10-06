@@ -29,18 +29,41 @@ def main():
 	# open port
 	print('[Host] Opening serial port', serialport,'at', baudrate, 'baud rate')
 	ser = serial.Serial(serialport, baudrate)
+
+	print('[Host] Waking up programmer...')
+	ser.write(b'Wakeup!')
 	
+	# wait for 'Starting'
+	msg = ser.readline().decode(errors='replace')
+	while(not msg.startswith('Starting')):
+		if msg.startswith('-v'):
+			if verbose:
+				print('      ', msg[2:], end='') 
+		elif msg.startswith('Exit'):
+			print('[Host] Received exit signal from programmer');
+			exit();
+		else :
+			print('      ', msg, end='')
+		
+		ser.write(b'Wakeup!')
+		msg = ser.readline().decode(errors='replace')
+	
+	print('      ', msg, end='')
 	# wait for 'Ready'
 	msg = ser.readline().decode(errors='replace')
 	while(not msg.startswith('Ready')):
-		if not msg.startswith('-v'):
+		if msg.startswith('-v'):
+			if verbose:
+				print('      ', msg[2:], end='') 
+		elif msg.startswith('Exit'):
+			print('[Host] Received exit signal from programmer');
+			exit();
+		else :
 			print('      ', msg, end='')
-		elif msg.startswith('-v') and verbose:
-			print('      ', msg[2:], end='')
-		# else print nothing	
-		
+			
 		msg = ser.readline().decode(errors='replace')
 	
+	print('      ', msg, end='')
 	print('[Host] Programmer is ready')
 	print('[Host] Opening file', hexfile)
 	# open file
@@ -50,13 +73,34 @@ def main():
 	file_len = os.path.getsize(hexfile)
 	print('[Host] Writing file length', file_len,'to programmer...')
 	ser.write(file_len.to_bytes(2, 'little'))
-		
-	# maybe print response
+	
+	# await ack in form of 'Received %d\n'	
 	msg = ser.readline().decode(errors='replace')
-	if not msg.startswith('-v'):
-		print('      ', msg, end='')
-	elif msg.startswith('-v') and verbose:
-		print('      ', msg[2:], end='')
+	while(not msg.startswith('Received')):
+		if msg.startswith('-v'):
+			if verbose:
+				print('      ', msg[2:], end='') 
+		elif msg.startswith('Exit'):
+			print('[Host] Received exit signal from programmer');
+			exit();
+		else :
+			print('      ', msg, end='')
+			
+		msg = ser.readline().decode(errors='replace')
+	
+	print('      ', msg, end='')
+	_, received_file_len = msg.split(' ')
+	success = False
+	try:
+		if int(received_file_len) == file_len:
+			success = True
+	except:
+		pass
+		
+	if not success:
+		print('[Host] programmer received incorrect file length. Exiting.')
+		ser.write(b'Exit')
+		exit()
 	
 	# transmit file
 	print('[Host] Writing file to programmer...')
@@ -68,11 +112,14 @@ def main():
 	#print responses until 'Exit'
 	msg = ser.readline().decode(errors='replace')
 	while(not msg.startswith('Exit')):
-		if not msg.startswith('-v'):
+		if msg.startswith('-v'):
+			if verbose:
+				print('      ', msg[2:], end='') 
+		elif msg.startswith('Exit'):
+			print('[Host] Received exit signal from programmer');
+			exit();
+		else :
 			print('      ', msg, end='')
-		elif msg.startswith('-v') and verbose:
-			print('      ', msg[2:], end='')
-		# else print nothing	
 		
 		msg = ser.readline().decode(errors='replace')
 		
