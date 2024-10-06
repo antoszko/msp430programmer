@@ -11,6 +11,9 @@
 #include "stdint.h" // for uint32_t
 #include "stdio.h" // for printf
 
+// TODO put configuration #defines somewhere central
+#define TIMEOUT 8000 // 8 second timeout
+
 typedef struct node node_t;	// allows referencing self inside definition
 
 typedef struct node
@@ -56,5 +59,10 @@ uint16_t ascii_string_to_word(const uint8_t* const string);
  * @brief Verifies the hexfile. Outputs a program as a linked list of node_t into output parameter program
  */
 uint8_t verify_hexfile_and_return_program_linklist(const uint8_t *const file, uint16_t file_size, node_t** program);
+
+/**
+ * @brief the main programming sequence. Does everything.
+ */
+void program_sequence();
 
 #endif /* INC_JTAG_PROGRAMMER_H_ */

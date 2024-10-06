@@ -26,6 +26,8 @@
 #include "JTAGfunc430.h"
 #include "LowLevelFunc430.h"
 #include "Devices430.h"
+#include <memory.h> // for memset
+#include <string.h> // for strncmp
 
 //mine
 #include "jtag_programmer.h"
@@ -74,7 +76,8 @@ GETCHAR_PROTOTYPE
   /* Wait for reception of a character on the USART RX line and echo this
    * character on console */
   HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+//  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  // dont echo
   return ch;
 }
 /* USER CODE END PV */
@@ -85,7 +88,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 static void GPIO_DeInit(void);
-
+static void GPIO_ReInit(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -93,6 +96,11 @@ static void GPIO_DeInit(void);
 
 // TODO -- TESTING
 word StartJtag(void);
+
+// return minimum of a and b. if equal, return a.
+int min(int a, int b) {
+	return (b < a) ? b : a;
+}
 
 /* USER CODE END 0 */
 
@@ -148,212 +156,27 @@ int main(void)
   // -------------- END TESTING -------------
 
 
-	printf("starting...\r\n");
-	HAL_Delay(1000);
-
-	uint8_t ret = 0;
-	node_t *program = NULL;
-
-	printf("Ready\n");
-
-	uint8_t *c = NULL;
-	uint16_t bytes_received = 0;
-
-	uint16_t file_len = 0;
-
-	if (HAL_UART_Receive(&huart2, (uint8_t*) &file_len, 2, 4000) != HAL_OK)	// receive 2 bytes, LSB first
-	{
-		printf("Critical Error! Failed to receive file length\n");
-		goto error;
-	}
-
-	if (file_len < 12) // the smallest possible .hex file is 12 bytes. ":00000001FF" + EOF
-	{
-		printf("Critical Error! File is too short (<12 bytes)\n");
-		goto error;
-	}
-
-	printf("-vSuccessfully received file length %u bytes\n", file_len);
-
-	c = (uint8_t*) malloc(file_len);
-
-	{
-		uint8_t *cptr = c;
-		while ((ret = HAL_UART_Receive(&huart2, cptr, 1, 4000)) == HAL_OK) // 4 second timeout
-		{
-			++cptr;
-
-			if (cptr >= c + file_len) {
-				break;
-			}
-			continue;
-		}
-
-		bytes_received = (uint16_t) (cptr - c);
-		if (ret != HAL_OK)
-		{
-			printf("Critical Error! Timed out while waiting for file. Received %u/%u ret = %u\n", cptr - c, file_len, ret);
-			goto error;
-		}
-	}
-
-	printf("-vReceived file of length %u bytes\n", bytes_received);
-
-	if (bytes_received < 12) // the smallest possible .hex file is 12 bytes. ":00000001FF" + EOF
-	{
-		printf("Critical Error! File is too short (<12 bytes)\n");
-		goto error;
-	}
-
-	printf("Verifying .hex file...\n");
-	ret = verify_hexfile_and_return_program_linklist(c, bytes_received, &program);
-	if (ret != 0)
-	{
-		printf("Aborting...\n");
-		goto error;
-	}
-	printf("-vSuccessfully verified .hex file\n");
-
-	printf("Connecting to target...\n");
-	uint16_t deviceID;
-	word status = GetDevice(&deviceID);
-	if (status != STATUS_OK)         // Set DeviceId
-	{
-		printf("Get device failed. status=0x%x\n\r", status);
-		goto error;
-	}                                    // time-out. (error: red LED is ON)
-	printf("-vSuccessfully connected to target 0x%04x\n", deviceID);
-
-	printf("Erasing target flash...\n");
-
-	uint8_t main_segments[64] = { 0 };// 64 segments of main memory 512 bytes each 0x8000 to 0xffff (in reality only 4 segments are used in 2k flash but this is easier
-	uint8_t info_segments[4] = { 0 }; // 4 segments of info memory 64 bytes each 0x1000 to 0x10ff. [0] is segment A and [3] is segment D
-
-	// iterate through program linked list to find out which segments need to be erased
-	for (node_t *iter = program; iter != NULL; iter = iter->next)// traverse the linked list
-	{
-		if (iter->address >= 0x8000) // technically 32kb flash region starts at 0x8000
-		{
-			//main
-			uint8_t seg_index = (0xffff - iter->address) / 0x0200;
-			uint8_t seg_index_of_last_byte = (0xffff - iter->address - 2*iter->length) / 0x0200;	// the segment that the last byte lies in. (*2 because length is number of words!)
-			if (main_segments[seg_index] == 0)
-			{
-				printf("-vPlan to flash main segment %u (0x%04x)\n", seg_index, iter->address);
-				main_segments[seg_index] = 1;
-			}
-			if (main_segments[seg_index_of_last_byte] == 0)
-			{
-				printf("-vCode overlaps into next segment!\n");
-				printf("-vPlan to flash main segment %u (0x%04x)\n", seg_index_of_last_byte, iter->address);
-				main_segments[seg_index_of_last_byte] = 1;
-			}
-		}
-		else if (iter->address >= 0x1000 && iter->address <= 0x10ff)
-		{
-			//info
-			uint8_t seg_index = (0x10ff - iter->address) / 0x40;
-			if (info_segments[seg_index] == 0)
-			{
-				info_segments[seg_index] = 1;
-				printf("-vNeed to flash info segment %c (0x%04x)\n", seg_index + 'A', iter->address);
-			}
-		}
-//		else
-//		{
-//			should never reach here because the adress range is checked in verifyhexFile.
-//			TODO verify the range someplace else.
-//		}
-	}
-
-	uint32_t now = HAL_GetTick();
-	for (int i = 0; i < 64; i++)
-	{
-		if (main_segments[i])
-		{
-			uint16_t address = 0xFE00 - 0x200 * i;
-
-			EraseFLASH(ERASE_SGMT, address);
-			if (EraseCheck(address, 0x0100) != STATUS_OK) // Check main memory erasure (Fxx2..9)
-			{
-				printf("Critical Error! Failed to erase main flash segment %u (begins 0x%04x)\n", i, address);
-				goto error;
-			}
-			printf("-vSuccessfully erased flash segment %u (begins 0x%04x)\n", i, address);
-		}
-	}
-	for (int i = 0; i < 4; i++)
-	{
-		if (info_segments[i])
-		{
-			uint16_t address = 0x10C0 - 0x40 * i;
-
-			EraseFLASH(ERASE_SGMT, address);
-			if (EraseCheck(address, 0x0020) != STATUS_OK) // Check main memory erasure (Fxx2..9)
-			{
-				if (i == 0) // segment A
-				{
-					printf("Error! Failed to erase info flash segment A (begins 0x10C0). This is a special segment which contains configuration data\n");
-					continue;
-				}
-
-				printf("Critical Error! Failed to erase info flash segment %c (begins 0x%04x)\n", i + 'A', address);
-				goto error;
-			}
-			printf("-vSuccessfully erased flash segment %c (begins 0x%04x)\n", i = 'A', address);
-		}
-	}
-	uint32_t delta = HAL_GetTick() - now;
-	printf("-vSuccessfully erased target flash\n");
-
-	printf("Writing target flash...\n");
-	now = HAL_GetTick();
-
-	for (node_t *iter = program; iter != NULL; iter = iter->next)// traverse the linked list
-	{
-		WriteFLASH(iter->address, iter->length, iter->data);
-
-		uint16_t *temp = (uint16_t*) malloc(iter->length * sizeof(uint16_t));
-		ReadMemQuick(iter->address, iter->length, temp);
-
-		printf("-v0x%04x: ", iter->address);
-		for (int i = 0; i < iter->length; i++)
-		{
-			printf("%04x", temp[i]);
-		}
-		printf("\n");
-
-		free(temp);
-
-		if (VerifyMem(iter->address, iter->length, iter->data) != STATUS_OK)
-		{
-			printf("Critical Error! Verification of memory block 0x%04x failed!\n", iter->address);
-			goto error;
-		}
-	}
-
-	delta = HAL_GetTick() - now;
-	printf("Successfully wrote target flash. Time elapsed %01lu:%02lu.%03lu\n", delta / 60000, (delta / 1000) % 60, delta % 1000);
-
-error:
-	printf("Shutting down JTAG connection...\n");
-	ReleaseDevice(V_RESET);
-
-	// cleanup
-	free(c);
-	free_linkedlist(program);
-
-	GPIO_DeInit();
-
-	printf("Exit\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1) {
+  while (1) {
+	  char buf[16] = {0};
+	  uint16_t buflen = 0;
 
-		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		HAL_Delay(500);
+	  HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle(&huart2, (uint8_t*)&buf[0], 16, &buflen, TIMEOUT);
+	  if(ret == HAL_OK) {
+		  if(strncmp(buf, "Wakeup!", min(buflen, 7)) == 0) {
+			  __HAL_UART_FLUSH_DRREGISTER(&huart2);
+			  GPIO_ReInit();
+			  program_sequence();
+			  GPIO_DeInit();
+		  }
+	  } else {
+		  printf("-vret is %d and received %d bytes : %s\n", ret, buflen, buf);
+	  }
+
+	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -428,7 +251,8 @@ static void MX_USART2_UART_Init(void)
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
@@ -517,16 +341,31 @@ static void GPIO_DeInit(void)
 {
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  GPIO_InitStruct.Pin = TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin|TDO_Pin;
+  GPIO_InitStruct.Pin = TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin|TDO_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = TARGET_RESET_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
+
+static void GPIO_ReInit(void)
+{
+  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  GPIO_InitStruct.Pin = TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin
+                          |TEST_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = TDO_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(TDO_GPIO_Port, &GPIO_InitStruct);
+}
+
 /* USER CODE END 4 */
 
 /**
