@@ -1,5 +1,7 @@
 # `msp430_programmer.py`
 
+## [Blog Post (hackaday.io)](https://hackaday.io/project/195106-msp430-programmer-using-stm32)
+
 This is a script for programming a hex file into a msp430. It is designed for and tested on a MSP430G2211 MCU.
 It is intended to be used alongside the JTAG-Programmer CubeIDE project installed on a NUCLEO-L432KC.
 
