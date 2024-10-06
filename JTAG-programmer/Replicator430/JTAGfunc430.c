@@ -430,8 +430,7 @@ static void EntrySequences_RstHigh_JTAG()
 
 //----------------------------------------------------------------------------
 //! \brief Function to start the JTAG communication
-// TODO make static
-/*static*/ word StartJtag(void)
+static word StartJtag(void)
 {
     // drive JTAG/TEST signals
     SetTDI();

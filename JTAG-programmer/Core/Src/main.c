@@ -76,8 +76,7 @@ GETCHAR_PROTOTYPE
   /* Wait for reception of a character on the USART RX line and echo this
    * character on console */
   HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-//  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-  // dont echo
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
   return ch;
 }
 /* USER CODE END PV */
@@ -93,9 +92,6 @@ static void GPIO_ReInit(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-// TODO -- TESTING
-word StartJtag(void);
 
 // return minimum of a and b. if equal, return a.
 int min(int a, int b) {
@@ -134,26 +130,6 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  // -------------- TESTING --------------
-//  ClrRST();
-//  ClrTCK();
-//  ClrTDI();
-//  ClrTMS();
-//  ClrTST();
-//  volatile word x = StartJtag();
-//  ClrRST();
-//  ClrTCK();
-//  ClrTDI();
-//  ClrTMS();
-//  ClrTST();
-//  printf("got jtag id is 0x%04x\n", x);
-//  printf("Exit\n");
-//
-//  while(1)
-//  {}
-
-  // -------------- END TESTING -------------
 
 
   /* USER CODE END 2 */
