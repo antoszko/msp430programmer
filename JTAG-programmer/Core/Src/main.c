@@ -317,7 +317,8 @@ static void GPIO_DeInit(void)
 {
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  GPIO_InitStruct.Pin = TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin|TDO_Pin;
+  // dont deinit reset!
+  GPIO_InitStruct.Pin = /*TARGET_RESET_Pin|*/TMS_Pin|TCK_Pin|TDI_Pin|TEST_Pin|TDO_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -327,7 +328,7 @@ static void GPIO_ReInit(void)
 {
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  GPIO_InitStruct.Pin = TARGET_RESET_Pin|TMS_Pin|TCK_Pin|TDI_Pin
+  GPIO_InitStruct.Pin = /*TARGET_RESET_Pin|*/TMS_Pin|TCK_Pin|TDI_Pin
                           |TEST_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;

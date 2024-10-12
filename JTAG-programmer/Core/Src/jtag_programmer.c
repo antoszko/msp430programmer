@@ -159,7 +159,7 @@ void program_sequence() {
 	{
 		if (main_segments[i])
 		{
-			uint16_t address = 0xFE00 - 0x200 * i;
+			uint16_t address = 0xFE00 - 0x200 * i; // each segment is 512 (0x200) bytes large.
 
 			EraseFLASH(ERASE_SGMT, address);
 			if (EraseCheck(address, 0x0100) != STATUS_OK) // Check main memory erasure (Fxx2..9)
